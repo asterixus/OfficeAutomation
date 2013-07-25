@@ -1,0 +1,49 @@
+Sub SaveArchiveMail()
+' Written by Asterix
+' Version 1.0 (2013.07.25)
+' Language: Visual Basic for Application
+' Environment: Microsoft Outlook 2013
+
+MyPath = "C:\Docs\"
+
+Dim oMail As Outlook.MailItem
+
+For Each oMail In Application.ActiveExplorer.Selection ' Walking through all e-mail objects
+  
+ 'Fetching name of folder where e-mails are located, sender and mail subject
+ m_author = CStr(oMail.Sender)
+ m_folder = CStr(oMail.Parent)
+ 
+ 'Taking last name as author field value
+ space_position = InStr(1, m_author, " ")
+ While (space_position > 0)
+ Length = Len(m_author)
+ m_author = Mid(m_author, space_position + 1, Length - space_position + 1)
+ space_position = InStr(1, m_author, " ")
+ Wend
+  
+'Creating variable with full path and creating correspondent file folder if not exist
+ MyFolder = MyPath + m_folder
+ If Dir(MyFolder, vbDirectory) = "" Then MkDir (MyFolder)
+  
+'Chopping date to components for rearranging in YYYYMMDD format
+ Date_y = CStr(Year(oMail.CreationTime))
+ Date_m = CStr(Month(oMail.CreationTime))
+ Date_d = CStr(Day(oMail.CreationTime))
+ Time_h = CStr(Hour(oMail.CreationTime))
+ Time_m = CStr(Minute(oMail.CreationTime))
+  
+'Adding extra digit to one-digit values (for padding)
+ If Len(Date_m) = 1 Then Date_m = "0" & Date_m
+ If Len(Date_d) = 1 Then Date_d = "0" & Date_d
+ If Len(Time_h) = 1 Then Time_h = "0" & Time_h
+ If Len(Time_m) = 1 Then Time_m = "0" & Time_m
+ 
+'Creating time stamp
+  TimeStamp = Date_y & Date_m & Date_d & "_" & Time_h & Time_m
+    
+'Saving mail item
+ oMail.SaveAs (MyFolder + "\" + TimeStamp + "_" + m_author + ".msg")
+
+Next oMail
+End Sub

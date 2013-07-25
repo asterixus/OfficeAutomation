@@ -1,0 +1,36 @@
+Sub TraficLightColoring()
+
+' Written by Asterix
+' Version 1.0 (2013.07.25)
+' Language: Visual Basic for Application
+' Environment: Microsoft Word 2013
+
+' Conditional colouring of table cells. For example, when doing risk assessment one can format already prepared table with risks
+
+Dim c As Column
+Dim r As Row
+
+c_count = 0
+r_count = 0
+
+For Each c In Selection.Tables(1).Columns
+c_count = c_count + 1
+
+	For Each r In Selection.Tables(1).Rows
+    	r_count = r_count + 1
+	    If InStr(1, Selection.Tables(1).Cell(r_count, c_count).Range.Text, "High") > 0 Then
+        	Selection.Tables(1).Cell(r_count, c_count).Shading.BackgroundPatternColor = 6908415 'Soft Red
+	    End If
+	
+	    If InStr(1, Selection.Tables(1).Cell(r_count, c_count).Range.Text, "Medium") > 0 Then
+	        Selection.Tables(1).Cell(r_count, c_count).Shading.BackgroundPatternColor = 49407 'Amber
+	    End If
+
+	    If InStr(1, Selection.Tables(1).Cell(r_count, c_count).Range.Text, "Low") > 0 Then
+        	Selection.Tables(1).Cell(r_count, c_count).Shading.BackgroundPatternColor = 16695154 'Sky blue
+	    End If
+	Next
+r_count = 0
+Next
+    
+End Sub
