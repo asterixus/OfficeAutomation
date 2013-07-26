@@ -1,27 +1,73 @@
+Function Transliterate(Russian As String)
+' Taken from https://gist.github.com/jenikm/3020221
+'http://www.utf8-chartable.de/unicode-utf8-table.pl?start=1024&utf8=-&unicodeinhtml=dec
+'use numerical HTML column
+
+    letters = Array("A", "B", "V", "G", "D", "E", "YO", "ZH", "Z", "I", "Y", "K", "L", "M", "N", "O", "P", "R", "S", "T", "U", "F", "H", "TZ", "CH", "SH", "SCH", "", "Y", "", "E", "YU", "YA", "a", "b", "v", "g", "d", "e", "yo", "zh", "z", "i", "y", "k", "l", "m", "n", "o", "p", "r", "s", "t", "u", "f", "h", "tz", "ch", "sh", "sch", "", "y", "", "e", "yu", "ya", "#")
+    i = 1040
+    For Each letter In letters
+        Dim val As String
+        Select Case letter
+            Case "YO"
+                val = ChrW(1025)
+            Case "yo"
+                val = ChrW(1105)
+            Case "#"
+                val = ChrW(8470)
+            Case Else
+                val = ChrW(i)
+                i = i + 1
+        End Select
+        Russian = Replace(Russian, val, letter)
+    Next letter
+    Transliterate = Russian
+End Function
 Sub SaveArchiveMail()
 ' Written by Asterix
-' Version 1.0 (2013.07.25)
-' Language: Visual Basic for Application
+' Version 1.01 (2013.07.26)
+' Language: Visual Basic for application
 ' Environment: Microsoft Outlook 2013
 
 MyPath = "C:\Docs\"
 
 Dim oMail As Outlook.MailItem
+Dim m_subject As String 'Necessary to avoid ByRef error during procedure call
 
 For Each oMail In Application.ActiveExplorer.Selection ' Walking through all e-mail objects
   
  'Fetching name of folder where e-mails are located, sender and mail subject
  m_author = CStr(oMail.Sender)
  m_folder = CStr(oMail.Parent)
+ m_subject = CStr(oMail.Subject)
+
+'Removing special characters from subject
+ m_subject = Replace(m_subject, ":", "_")
+ m_subject = Replace(m_subject, "/", "_")
+ m_subject = Replace(m_subject, ",", "_")
+ m_subject = Replace(m_subject, "<", "_")
+ m_subject = Replace(m_subject, ">", "_")
+ m_subject = Replace(m_subject, "?", "_")
+ m_subject = Replace(m_subject, "*", "_")
+ m_subject = Replace(m_subject, Chr(34), "_") 'Double quotes mark
  
  'Taking last name as author field value
  space_position = InStr(1, m_author, " ")
  While (space_position > 0)
- Length = Len(m_author)
- m_author = Mid(m_author, space_position + 1, Length - space_position + 1)
- space_position = InStr(1, m_author, " ")
+    Length = Len(m_author)
+    m_author = Mid(m_author, space_position + 1, Length - space_position + 1)
+    space_position = InStr(1, m_author, " ")
  Wend
   
+'Taking last word from subject as subject
+ space_position = InStr(1, m_subject, " ")
+ While (space_position > 0)
+    Length = Len(m_subject)
+    m_subject = Mid(m_subject, space_position + 1, Length - space_position + 1)
+    space_position = InStr(1, m_subject, " ")
+ Wend
+
+If m_subject <> "" Then m_subject = Transliterate(m_subject)
+
 'Creating variable with full path and creating correspondent file folder if not exist
  MyFolder = MyPath + m_folder
  If Dir(MyFolder, vbDirectory) = "" Then MkDir (MyFolder)
@@ -43,7 +89,7 @@ For Each oMail In Application.ActiveExplorer.Selection ' Walking through all e-m
   TimeStamp = Date_y & Date_m & Date_d & "_" & Time_h & Time_m
     
 'Saving mail item
- oMail.SaveAs (MyFolder + "\" + TimeStamp + "_" + m_author + ".msg")
+ oMail.SaveAs (MyFolder + "\" + TimeStamp + "_" + m_author + "_" + m_subject + ".msg")
 
 Next oMail
 End Sub
